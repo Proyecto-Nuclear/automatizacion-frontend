@@ -9,7 +9,6 @@ type ModalProps = {
 
 export default function Modal({ open, onClose, children, title }: ModalProps) {
     if (!open) return null;
-
     return (
         <div
             style={{

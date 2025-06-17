@@ -3,105 +3,116 @@
 import React, { useEffect, useState } from 'react';
 import Table from '../../components/ui/Table';
 import Modal from '../../components/ui/Modal';
-import FormCrearAutomatizacion from '../../components/automatizaciones/FormCrearAutomatizacion';
+import FormAutomatizacion from '../../components/automatizaciones/FormAutomatizacion'; // crea este form según tus campos
 import {
     fetchAutomatizaciones,
-    eliminarAutomatizacion,
     crearAutomatizacion,
-    actualizarAutomatizacion,
+    editarAutomatizacion,
+    eliminarAutomatizacion,
 } from '../../services/automatizacionesApi';
+import { Automatizacion } from '../../types/Automatizacion';
 
-const columns = ['Nombre', 'Estado', 'Fecha de creación', 'Acciones'];
+const columns = [
+    'ID',
+    'Nombre',
+    'Estado',
+    'Fecha de creación',
+    'Acciones',
+];
 
 export default function AutomatizacionesPage() {
-    const [data, setData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState<Automatizacion[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
 
-    // Para crear
-    const [modalOpen, setModalOpen] = useState(false);
-    const [creating, setCreating] = useState(false);
-
-    // Para editar
-    const [editModalOpen, setEditModalOpen] = useState(false);
-    const [editData, setEditData] = useState<any | null>(null);
-    const [updating, setUpdating] = useState(false);
+    // Para crear y editar
+    const [modalOpen, setModalOpen] = useState<boolean>(false);
+    const [editing, setEditing] = useState<Automatizacion | null>(null);
+    const [saving, setSaving] = useState<boolean>(false);
 
     useEffect(() => {
-        fetchAutomatizaciones()
-            .then(setData)
-            .catch(() => alert('Error al cargar automatizaciones'))
-            .finally(() => setLoading(false));
+        cargarAutomatizaciones();
     }, []);
 
-    const handleEliminar = async (row: any) => {
-        if (confirm(`¿Seguro que quieres eliminar "${row.nombre}"?`)) {
-            await eliminarAutomatizacion(row.id);
-            setData(prev => prev.filter(item => item.id !== row.id));
+    const cargarAutomatizaciones = async () => {
+        setLoading(true);
+        try {
+            const res = await fetchAutomatizaciones();
+            setData(res.automatizaciones || []);
+        } catch {
+            alert('Error al cargar automatizaciones');
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleCrear = async (formData: { nombre: string; estado: string }) => {
-        setCreating(true);
+    const handleCrear = async (formData: Omit<Automatizacion, 'id' | 'fecha_creacion'>) => {
+        setSaving(true);
         try {
-            const nueva = await crearAutomatizacion(formData);
-            setData(prev => [...prev, nueva]);
+            await crearAutomatizacion(formData);
             setModalOpen(false);
-        } catch {
-            alert('Error al crear automatización');
+            await cargarAutomatizaciones();
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                alert(e.message);
+            } else {
+                alert('Ocurrió un error desconocido');
+            }
         } finally {
-            setCreating(false);
+            setSaving(false);
         }
     };
 
-    const handleEditar = (row: any) => {
-        setEditData(row);
-        setEditModalOpen(true);
-    };
-
-    const handleUpdate = async (formData: { nombre: string; estado: string }) => {
-        if (!editData) return;
-        setUpdating(true);
+    const handleEditar = async (id: string, formData: Omit<Automatizacion, 'id' | 'fecha_creacion'>) => {
+        setSaving(true);
         try {
-            const updated = await actualizarAutomatizacion(editData.id, formData);
-            setData(prev =>
-                prev.map(item => (item.id === editData.id ? { ...item, ...updated } : item))
-            );
-            setEditModalOpen(false);
-            setEditData(null);
-        } catch {
-            alert('Error al actualizar automatización');
+            await editarAutomatizacion(id, formData);
+            setEditing(null);
+            await cargarAutomatizaciones();
+        }catch (e: unknown) {
+            if (e instanceof Error) {
+                alert(e.message);
+            } else {
+                alert('Ocurrió un error desconocido');
+            }
         } finally {
-            setUpdating(false);
+            setSaving(false);
         }
     };
 
-    const tableData = data.map(row => ({
-        ...row,
+    const handleEliminar = async (id: string) => {
+        if (confirm(`¿Seguro que quieres eliminar la automatización ${id}?`)) {
+            setSaving(true);
+            try {
+                await eliminarAutomatizacion(id);
+                await cargarAutomatizaciones();
+            }catch (e: unknown) {
+                if (e instanceof Error) {
+                    alert(e.message);
+                } else {
+                    alert('Ocurrió un error desconocido');
+                }
+            } finally {
+                setSaving(false);
+            }
+        }
+    };
+
+    const tableData = data.map((row) => ({
+        ID: row.id,
+        Nombre: row.nombre,
+        Estado: row.estado,
+        'Fecha de creación': row.fecha_creacion,
         Acciones: (
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
                 <button
-                    onClick={() => handleEditar(row)}
-                    style={{
-                        color: '#1976d2',
-                        background: 'none',
-                        border: '1px solid #1976d2',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        padding: '2px 10px',
-                    }}
+                    onClick={() => setEditing(row)}
+                    style={{ fontSize: 12, padding: '2px 6px' }}
                 >
                     Editar
                 </button>
                 <button
-                    onClick={() => handleEliminar(row)}
-                    style={{
-                        color: '#f44336',
-                        background: 'none',
-                        border: '1px solid #f44336',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        padding: '2px 10px',
-                    }}
+                    onClick={() => handleEliminar(row.id)}
+                    style={{ fontSize: 12, color: '#f44336', border: '1px solid #f44336', borderRadius: 4, padding: '2px 6px' }}
                 >
                     Eliminar
                 </button>
@@ -139,22 +150,24 @@ export default function AutomatizacionesPage() {
             <Table columns={columns} data={tableData} />
 
             {/* Modal para crear */}
-            <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Crear nueva automatización">
-                <FormCrearAutomatizacion
+            <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Crear automatización">
+                <FormAutomatizacion
                     onSubmit={handleCrear}
                     onCancel={() => setModalOpen(false)}
-                    loading={creating}
+                    loading={saving}
                 />
             </Modal>
 
             {/* Modal para editar */}
-            <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)} title="Editar automatización">
-                <FormCrearAutomatizacion
-                    onSubmit={handleUpdate}
-                    onCancel={() => setEditModalOpen(false)}
-                    loading={updating}
-                    initialValues={editData}
-                />
+            <Modal open={!!editing} onClose={() => setEditing(null)} title="Editar automatización">
+                {editing && (
+                    <FormAutomatizacion
+                        initial={editing}
+                        onSubmit={(formData) => handleEditar(editing.id, formData)}
+                        onCancel={() => setEditing(null)}
+                        loading={saving}
+                    />
+                )}
             </Modal>
         </div>
     );

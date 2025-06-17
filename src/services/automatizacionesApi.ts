@@ -1,3 +1,5 @@
+import { Automatizacion } from '../types/Automatizacion';
+
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchAutomatizaciones() {
@@ -6,15 +8,7 @@ export async function fetchAutomatizaciones() {
     return res.json();
 }
 
-export async function eliminarAutomatizacion(id: number) {
-    const res = await fetch(`${baseUrl}/automatizaciones/${id}`, {
-        method: 'DELETE',
-    });
-    if (!res.ok) throw new Error('Error al eliminar automatización');
-    return res.json();
-}
-
-export async function crearAutomatizacion(data: { nombre: string; estado: string }) {
+export async function crearAutomatizacion(data: Omit<Automatizacion, 'id' | 'fecha_creacion'>) {
     const res = await fetch(`${baseUrl}/automatizaciones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,15 +18,20 @@ export async function crearAutomatizacion(data: { nombre: string; estado: string
     return res.json();
 }
 
-export async function actualizarAutomatizacion(
-    id: number,
-    data: { nombre: string; estado: string }
-) {
+export async function editarAutomatizacion(id: string, data: Omit<Automatizacion, 'id' | 'fecha_creacion'>) {
     const res = await fetch(`${baseUrl}/automatizaciones/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Error al actualizar automatización');
+    if (!res.ok) throw new Error('Error al editar automatización');
+    return res.json();
+}
+
+export async function eliminarAutomatizacion(id: string) {
+    const res = await fetch(`${baseUrl}/automatizaciones/${id}`, {
+        method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Error al eliminar automatización');
     return res.json();
 }
