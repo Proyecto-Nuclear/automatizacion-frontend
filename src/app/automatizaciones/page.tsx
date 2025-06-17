@@ -1,60 +1,36 @@
 'use client';
 
 import Table from '../../components/ui/Table';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { fetchAutomatizaciones, eliminarAutomatizacion } from '../../services/automatizacionesApi';
 
 const columns = ['Nombre', 'Estado', 'Fecha de creación', 'Acciones'];
 
-const initialData = [
-    {
-        id: 1,
-        Nombre: 'Enviar reporte mensual',
-        Estado: 'Activa',
-        'Fecha de creación': '2025-06-01',
-    },
-    {
-        id: 2,
-        Nombre: 'Sincronizar contactos',
-        Estado: 'Inactiva',
-        'Fecha de creación': '2025-05-20',
-    },
-    {
-        id: 3,
-        Nombre: 'Notificar pagos',
-        Estado: 'Activa',
-        'Fecha de creación': '2025-06-10',
-    },
-];
-
 export default function AutomatizacionesPage() {
-    const [data, setData] = useState(initialData);
+    const [data, setData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Manejadores de acciones
-    const handleVer = (row: any) => {
-        alert(`Vista de: ${row.Nombre}`);
-    };
+    useEffect(() => {
+        fetchAutomatizaciones().then(setData).catch(() => alert('Error al cargar automatizaciones')).finally(() => setLoading(false));
+    }, []);
 
-    const handleEditar = (row: any) => {
-        alert(`Editar: ${row.Nombre}`);
-    };
-
-    const handleEliminar = (row: any) => {
+    const handleEliminar = async (row: any) => {
         if (confirm(`¿Seguro que quieres eliminar "${row.Nombre}"?`)) {
+            await eliminarAutomatizacion(row.id);
             setData((prev) => prev.filter((item) => item.id !== row.id));
         }
     };
 
-    // Prepara los datos para la tabla, agregando botones de acción
     const tableData = data.map((row) => ({
         ...row,
         Acciones: (
-            <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => handleVer(row)} style={{ color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer' }}>Ver</button>
-                <button onClick={() => handleEditar(row)} style={{ color: '#ff9800', background: 'none', border: 'none', cursor: 'pointer' }}>Editar</button>
-                <button onClick={() => handleEliminar(row)} style={{ color: '#f44336', background: 'none', border: 'none', cursor: 'pointer' }}>Eliminar</button>
-            </div>
+            <button onClick={() => handleEliminar(row)} style={{ color: '#f44336', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Eliminar
+            </button>
         ),
     }));
+
+    if (loading) return <div>Cargando...</div>;
 
     return (
         <div>
