@@ -4,11 +4,13 @@ import Header from './Header';
 
 export default function LayoutWrapper({ children }: { children: ReactNode }) {
     return (
-        <div className="app-layout">
+        <div style={{ display: 'flex', minHeight: '100vh' }}>
             <Sidebar />
-            <div className="main-content">
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Header />
-                <main>{children}</main>
+                <main style={{ padding: '2rem', flex: 1 }}>
+                    {children}
+                </main>
             </div>
         </div>
     );
