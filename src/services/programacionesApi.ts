@@ -8,7 +8,18 @@ export async function fetchProgramaciones() {
 }
 
 // Crear una nueva reserva de aula
-export async function reservarAula(data: never) {
+export async function reservarAula(data: {
+    asignatura_id: string;
+    aula_id: string;
+    fecha: string;
+    dia: string;
+    semestre: number;
+    hora_inicio: string;
+    hora_fin: string;
+    cantidad_estudiantes: number;
+    docente_id: string;
+    id_usuario: string
+}) {
     const res = await fetch(`${baseUrl}/reservar-aula`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

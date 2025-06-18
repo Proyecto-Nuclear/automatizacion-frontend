@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import ConsultaAulasDisponibles from '../../../components/ConsultaAulasDisponibles';
+import {ConsultaAulasDisponibles} from "@/components/ConsultaAulasDisponibles";
+
 
 export default function AulasDisponiblesPage() {
     return (
