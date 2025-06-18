@@ -97,9 +97,9 @@ export default function VerificadorDisponibilidadAulas() {
     return (
         <div className="w-full flex justify-center items-center py-12">
             <div className="bg-[#143e7a] p-10 rounded-2xl shadow-2xl min-w-[480px] max-w-2xl w-full">
-                <h2 className="text-white text-3xl font-bold mb-8 text-center tracking-wide shadow-sm drop-shadow-sm">
+                <h1 className="text-white text-3xl font-bold mb-8 text-center tracking-wide shadow-sm drop-shadow-sm">
                     Consulta de aulas disponibles
-                </h2>
+                </h1>
                 <form
                     onSubmit={handleSubmit}
                     className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-white/80 p-8 rounded-xl"
