@@ -12,15 +12,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Elimina o comenta el bloque de dark mode para que el fondo nunca cambie */
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
 }
+*/
 
 body {
-  background: var(--background);
+  background: var(--background) !important;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }

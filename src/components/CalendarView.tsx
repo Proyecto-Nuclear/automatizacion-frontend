@@ -1,8 +1,16 @@
-// src/components/CalendarView.tsx
 "use client";
 import { useState } from "react";
 
 const daysOfWeek = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+// Paleta basada en tu imagen y aclaraciones
+const palette = {
+    azul: "#1877f2",
+    verde: "#0a6534",
+    blanco: "#fff",
+    negro: "#222", // para mejor contraste que el #000 puro
+    borde: "#1877f2",
+};
 
 function getDaysInMonth(year: number, month: number) {
     return new Date(year, month + 1, 0).getDate();
@@ -20,7 +28,7 @@ export default function CalendarView() {
     const daysInMonth = getDaysInMonth(currentYear, currentMonth);
     const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
 
-    // Ejemplo de reservas (puedes reemplazarlo por tus datos reales)
+    // Ejemplo de reservas
     const reservas = [
         { day: 5, aula: "101", hora: "10:00" },
         { day: 12, aula: "202", hora: "14:00" },
@@ -45,31 +53,72 @@ export default function CalendarView() {
         }
     }
 
+    const monthLabel = new Date(currentYear, currentMonth, 1).toLocaleString("es-ES", { month: "long" });
+
     return (
         <div>
             <div className="flex items-center justify-between mb-4">
                 <button
                     onClick={prevMonth}
-                    className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700"
+                    style={{
+                        background: palette.azul,
+                        color: palette.blanco,
+                        border: `2px solid ${palette.azul}`,
+                        borderRadius: 6,
+                        width: 36,
+                        height: 36,
+                        fontWeight: 700,
+                        fontSize: 20,
+                        transition: "background .2s",
+                    }}
                 >
                     ←
                 </button>
-                <span className="font-semibold text-lg text-blue-800 dark:text-white">
-          {today.toLocaleString("es-ES", { month: "long" })} {currentYear}
+                <span
+                    style={{
+                        color: palette.azul,
+                        fontWeight: 700,
+                        fontSize: 20,
+                        textAlign: "center",
+                        textTransform: "capitalize",
+                    }}
+                >
+          {monthLabel} {currentYear}
         </span>
                 <button
                     onClick={nextMonth}
-                    className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-white hover:bg-blue-200 dark:hover:bg-blue-700"
+                    style={{
+                        background: palette.azul,
+                        color: palette.blanco,
+                        border: `2px solid ${palette.azul}`,
+                        borderRadius: 6,
+                        width: 36,
+                        height: 36,
+                        fontWeight: 700,
+                        fontSize: 20,
+                        transition: "background .2s",
+                    }}
                 >
                     →
                 </button>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-center mb-2">
+            <div className="grid grid-cols-7 gap-2 text-center mb-2">
                 {daysOfWeek.map((d) => (
-                    <div key={d} className="font-bold text-blue-800 dark:text-blue-100">{d}</div>
+                    <div
+                        key={d}
+                        style={{
+                            fontWeight: 700,
+                            color: palette.azul,
+                            fontSize: 17,
+                            padding: 3,
+                            borderRadius: 4,
+                        }}
+                    >
+                        {d}
+                    </div>
                 ))}
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-2">
                 {Array(firstDay)
                     .fill(null)
                     .map((_, i) => (
@@ -84,17 +133,59 @@ export default function CalendarView() {
                             day === today.getDate() &&
                             currentMonth === today.getMonth() &&
                             currentYear === today.getFullYear();
+
+                        // Fondo azul para el día seleccionado (hoy), verde para reservados, blanco para normales
+                        let bg = palette.blanco;
+                        let color = palette.negro;
+                        if (reserva) {
+                            bg = palette.verde;
+                            color = palette.blanco;
+                        } else if (isToday) {
+                            bg = palette.azul;
+                            color = palette.blanco;
+                        }
+
                         return (
                             <div
                                 key={day}
-                                className={`relative h-14 flex flex-col items-center justify-center rounded-lg border
-                  ${isToday ? "border-blue-700 bg-blue-100 dark:bg-blue-900" : "border-blue-50 dark:border-blue-800"}
-                  ${reserva ? "bg-green-100 dark:bg-green-900 border-green-400" : ""}
-                `}
+                                style={{
+                                    background: bg,
+                                    color: color,
+                                    border: `2px solid ${palette.borde}`,
+                                    borderRadius: 8,
+                                    height: 56,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontWeight: reserva || isToday ? 700 : 500,
+                                    fontSize: 16,
+                                    position: "relative",
+                                    transition: "background .2s, color .2s",
+                                }}
                             >
-                                <span className="font-semibold">{day}</span>
+                <span
+                    style={{
+                        color: color,
+                        fontWeight: reserva || isToday ? 700 : 600,
+                        fontSize: 17,
+                    }}
+                >
+                  {day}
+                </span>
                                 {reserva && (
-                                    <span className="text-xs text-green-700 dark:text-green-300 mt-1">
+                                    <span
+                                        style={{
+                                            fontSize: 13,
+                                            color: palette.blanco,
+                                            marginTop: 2,
+                                            borderRadius: 3,
+                                            padding: "0 4px",
+                                            fontWeight: 500,
+                                            background: "rgba(0,0,0,.10)",
+                                            letterSpacing: 0.2,
+                                        }}
+                                    >
                     Aula {reserva.aula}
                   </span>
                                 )}

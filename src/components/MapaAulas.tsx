@@ -40,13 +40,16 @@ export default function MapaAulas() {
             {/* Leyenda */}
             <div className="flex gap-6 mt-6">
                 <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-green-400 inline-block" /> Libre
+                    <span className="w-4 h-4 rounded bg-green-400 inline-block" />
+                    <span className="text-black">Libre</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-red-400 inline-block" /> Ocupada
+                    <span className="w-4 h-4 rounded bg-red-400 inline-block" />
+                    <span className="text-black">Ocupada</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-yellow-400 inline-block" /> Mantenimiento
+                    <span className="w-4 h-4 rounded bg-yellow-400 inline-block" />
+                    <span className="text-black">Mantenimiento</span>
                 </div>
             </div>
         </div>
