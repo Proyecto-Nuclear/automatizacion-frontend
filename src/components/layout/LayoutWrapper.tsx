@@ -9,7 +9,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
             <aside className="w-60 bg-[#143e7a] border-r border-blue-900 flex flex-col py-8 fixed h-full z-20">
                 <div className="flex flex-col gap-8">
                     <div className="flex items-center gap-3 px-6 mb-8">
-                        <img src="/ruta/al/logo.png" alt="Logo" className="h-10" />
+                        <img src="/humboldt.png"  className="h-15" />
                         <span className="font-bold text-lg text-white">Sistema de Reservas</span>
                     </div>
                     <nav className="flex flex-col gap-4">

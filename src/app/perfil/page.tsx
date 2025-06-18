@@ -34,7 +34,7 @@ export default function Perfil() {
             cursos: 2,
             horas: 457,
         },
-        foto: "/profile-photo.jpg", // Cambia por la ruta real de tu foto
+        foto: "/santiago.png", // Cambia por la ruta real de tu foto
     };
 
     return (
@@ -84,12 +84,21 @@ export default function Perfil() {
 
             {/* Columna derecha */}
             <main className="flex-1">
-                <h1 className="text-2xl font-bold text-blue-800 dark:text-white mb-1">{usuario.nombre}</h1>
-                <div className="text-gray-500 dark:text-gray-300 mb-1">{usuario.ubicacion}</div>
-                <div className="text-blue-700 dark:text-blue-200 mb-4">{usuario.web}</div>
-                <div className="mb-8 text-gray-700 dark:text-gray-200">{usuario.bio}</div>
+                <h1 className="text-2xl font-bold text-black mb-1">{usuario.nombre}</h1>
+                <div className="text-black mb-1">{usuario.ubicacion}</div>
+                <div className="mb-1">
+                    <a
+                        href={usuario.web}
+                        className="text-blue-900 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {usuario.web}
+                    </a>
+                </div>
+                <div className="mb-8 text-black">{usuario.bio}</div>
 
-                <h2 className="text-lg font-semibold text-blue-800 dark:text-white mb-4">Cursos realizados en campusMVP</h2>
+                <h2 className="text-lg font-semibold text-black mb-4">Cursos realizados</h2>
                 <div className="flex flex-col gap-4">
                     {usuario.cursos.map((curso, idx) => (
                         <div key={idx} className="bg-white dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg p-4 shadow-sm">
