@@ -1,10 +1,8 @@
-// src/services/programacionesService.ts
-
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 // Listar todas las programaciones
 export async function fetchProgramaciones() {
-    const res = await fetch(`${baseUrl}/api/v1/programaciones`);
+    const res = await fetch(`http://127.0.0.1:8000/api/v1/programaciones`);
     if (!res.ok) throw new Error('Error al cargar programaciones');
     return res.json();
 }
@@ -22,7 +20,7 @@ export async function reservarAula(data: {
     docente_id: string;
     id_usuario: string
 }) {
-    const res = await fetch(`${baseUrl}/api/v1/reservar-aula`, {
+    const res = await fetch(`http://127.0.0.1:8000/api/v1/reservar-aula`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -36,7 +34,7 @@ export async function reservarAula(data: {
 
 // Cambiar el estado de una programación
 export async function cambiarEstadoProgramacion(id: string, nuevo_estado: string) {
-    const res = await fetch(`${baseUrl}/api/v1/programaciones/${id}/estado?nuevo_estado=${nuevo_estado}`, {
+    const res = await fetch(`http://127.0.0.1:8000/api/v1/programaciones/${id}/estado?nuevo_estado=${nuevo_estado}`, {
         method: 'PUT',
     });
     if (!res.ok) {
@@ -48,7 +46,7 @@ export async function cambiarEstadoProgramacion(id: string, nuevo_estado: string
 
 // Cancelar (eliminar) una programación
 export async function cancelarProgramacion(id: string) {
-    const res = await fetch(`${baseUrl}/api/v1/programaciones/${id}`, {
+    const res = await fetch(`http://127.0.0.1:8000/api/v1/programaciones/${id}`, {
         method: 'DELETE',
     });
     if (!res.ok) {
