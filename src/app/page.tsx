@@ -1,4 +1,5 @@
 import CalendarView from "@/components/CalendarView";
+import MapaAulas from "@/components/MapaAulas"; // <--- Agrega esta línea
 
 export default function Dashboard() {
     return (
@@ -22,7 +23,7 @@ export default function Dashboard() {
             {/* Mapa de aulas */}
             <section className="md:col-span-3 bg-white dark:bg-blue-950 rounded-lg shadow p-6 mt-8">
                 <h2 className="font-semibold text-xl text-blue-800 dark:text-white mb-4">Mapa de Aulas</h2>
-                <div className="h-40 flex items-center justify-center text-gray-400 dark:text-gray-500">[Mapa visual de aulas]</div>
+                <MapaAulas /> {/* <--- Aquí integras el componente */}
             </section>
         </div>
     );
