@@ -32,7 +32,7 @@ export default function CalendarView() {
     const reservas = [
         { day: 5, aula: "101", hora: "10:00" },
         { day: 12, aula: "202", hora: "14:00" },
-        { day: 18, aula: "303", hora: "08:00" },
+        { day: 20, aula: "103", hora: "08:00" },
     ];
 
     function prevMonth() {
