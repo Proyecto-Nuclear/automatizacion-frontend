@@ -18,12 +18,6 @@ const estadoColor = {
     mantenimiento: "bg-yellow-100 text-yellow-800 border-yellow-400 dark:bg-yellow-900 dark:text-yellow-200",
 };
 
-const estadoLabel = {
-    libre: "Libre",
-    ocupada: "Ocupada",
-    mantenimiento: "Mantenimiento",
-};
-
 export default function MapaAulas() {
     return (
         <div className="w-full">

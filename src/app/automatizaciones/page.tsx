@@ -1,174 +1,56 @@
-'use client';
+"use client";
+import React, { useState } from 'react';
+import { crearHorarioCompletoSemestre, HorarioSemestreResponse } from '@/services/horariosService';
+import HorarioSemestreTable from "@/components/HorarioSemestreTable";
 
-import React, { useEffect, useState } from 'react';
-import Table from '../../components/ui/Table';
-import Modal from '../../components/ui/Modal';
-import FormAutomatizacion from '../../components/automatizaciones/FormAutomatizacion'; // crea este form según tus campos
-import {
-    fetchAutomatizaciones,
-    crearAutomatizacion,
-    editarAutomatizacion,
-    eliminarAutomatizacion,
-} from '../../services/automatizacionesApi';
-import { Automatizacion } from '../../types/Automatizacion';
+export default function HorariosPage() {
+    const [semestre, setSemestre] = useState<number | null>(null);
+    const [data, setData] = useState<HorarioSemestreResponse | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-const columns = [
-    'ID',
-    'Nombre',
-    'Estado',
-    'Fecha de creación',
-    'Acciones',
-];
-
-export default function AutomatizacionesPage() {
-    const [data, setData] = useState<Automatizacion[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-
-    // Para crear y editar
-    const [modalOpen, setModalOpen] = useState<boolean>(false);
-    const [editing, setEditing] = useState<Automatizacion | null>(null);
-    const [saving, setSaving] = useState<boolean>(false);
-
-    useEffect(() => {
-        cargarAutomatizaciones();
-    }, []);
-
-    const cargarAutomatizaciones = async () => {
+    const handleGenerarHorario = async () => {
+        if (!semestre) return;
         setLoading(true);
+        setError(null);
+        setData(null);
         try {
-            const res = await fetchAutomatizaciones();
-            setData(res.automatizaciones || []);
-        } catch {
-            alert('Error al cargar automatizaciones');
+            const result = await crearHorarioCompletoSemestre(semestre, true);
+            setData(result);
+        } catch (err: any) {
+            setError(err.message || 'Error al crear el horario');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCrear = async (formData: Omit<Automatizacion, 'id' | 'fecha_creacion'>) => {
-        setSaving(true);
-        try {
-            await crearAutomatizacion(formData);
-            setModalOpen(false);
-            await cargarAutomatizaciones();
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                alert(e.message);
-            } else {
-                alert('Ocurrió un error desconocido');
-            }
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleEditar = async (id: string, formData: Omit<Automatizacion, 'id' | 'fecha_creacion'>) => {
-        setSaving(true);
-        try {
-            await editarAutomatizacion(id, formData);
-            setEditing(null);
-            await cargarAutomatizaciones();
-        }catch (e: unknown) {
-            if (e instanceof Error) {
-                alert(e.message);
-            } else {
-                alert('Ocurrió un error desconocido');
-            }
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleEliminar = async (id: string) => {
-        if (confirm(`¿Seguro que quieres eliminar la automatización ${id}?`)) {
-            setSaving(true);
-            try {
-                await eliminarAutomatizacion(id);
-                await cargarAutomatizaciones();
-            }catch (e: unknown) {
-                if (e instanceof Error) {
-                    alert(e.message);
-                } else {
-                    alert('Ocurrió un error desconocido');
-                }
-            } finally {
-                setSaving(false);
-            }
-        }
-    };
-
-    const tableData = data.map((row) => ({
-        ID: row.id,
-        Nombre: row.nombre,
-        Estado: row.estado,
-        'Fecha de creación': row.fecha_creacion,
-        Acciones: (
-            <div style={{ display: 'flex', gap: 6 }}>
-                <button
-                    onClick={() => setEditing(row)}
-                    style={{ fontSize: 12, padding: '2px 6px' }}
-                >
-                    Editar
-                </button>
-                <button
-                    onClick={() => handleEliminar(row.id)}
-                    style={{ fontSize: 12, color: '#f44336', border: '1px solid #f44336', borderRadius: 4, padding: '2px 6px' }}
-                >
-                    Eliminar
-                </button>
-            </div>
-        ),
-    }));
-
-    if (loading) return <div>Cargando...</div>;
-
     return (
-        <div>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 20,
-            }}>
-                <h2 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Automatizaciones</h2>
-                <button
-                    onClick={() => setModalOpen(true)}
-                    style={{
-                        padding: '8px 20px',
-                        fontWeight: 500,
-                        fontSize: 16,
-                        cursor: 'pointer',
-                        background: '#1976d2',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                    }}
+        <main className="min-h-screen bg-gray-100 py-8">
+            <div className="w-full max-w-2xl mx-auto mb-8">
+                <label className="block mb-2 text-lg font-semibold text-gray-700">
+                    Selecciona el semestre:
+                </label>
+                <select
+                    className="w-full p-3 border rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    value={semestre ?? ''}
+                    onChange={e => setSemestre(e.target.value ? Number(e.target.value) : null)}
                 >
-                    + Nueva automatización
+                    <option value="">-- Selecciona un semestre --</option>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                        <option key={num} value={num}>
+                            Semestre {num}
+                        </option>
+                    ))}
+                </select>
+                <button
+                    className="mt-4 px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition disabled:opacity-50"
+                    onClick={handleGenerarHorario}
+                    disabled={!semestre || loading}
+                >
+                    {loading ? 'Generando...' : 'Generar horario'}
                 </button>
             </div>
-            <Table columns={columns} data={tableData} />
-
-            {/* Modal para crear */}
-            <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Crear automatización">
-                <FormAutomatizacion
-                    onSubmit={handleCrear}
-                    onCancel={() => setModalOpen(false)}
-                    loading={saving}
-                />
-            </Modal>
-
-            {/* Modal para editar */}
-            <Modal open={!!editing} onClose={() => setEditing(null)} title="Editar automatización">
-                {editing && (
-                    <FormAutomatizacion
-                        initial={editing}
-                        onSubmit={(formData) => handleEditar(editing.id, formData)}
-                        onCancel={() => setEditing(null)}
-                        loading={saving}
-                    />
-                )}
-            </Modal>
-        </div>
+            <HorarioSemestreTable data={data} loading={loading} error={error} />
+        </main>
     );
 }
