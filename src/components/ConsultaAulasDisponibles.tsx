@@ -1,12 +1,8 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { getDatosBase, Asignatura } from '@/services/datosService';
 import AulasDisponiblesSection, { AulaDisponible } from "@/components/AulasDisponiblesSection";
 import AulasNoDisponiblesSection, { AulaNoDisponible } from "@/components/AulasNoDisponiblesSection";
 
-interface Asignatura {
-    id: string;
-    nombre: string;
-    tipo: string;
-}
 interface HorarioSolicitado {
     dia: string;
     hora_inicio: string;
@@ -28,6 +24,7 @@ const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const semestres = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export default function VerificadorDisponibilidadAulas() {
+    const [datos, setDatos] = useState<{ asignaturas: Asignatura[] }>({ asignaturas: [] });
     const [formData, setFormData] = useState({
         asignatura_id: '',
         hora_inicio: '',
@@ -40,11 +37,24 @@ export default function VerificadorDisponibilidadAulas() {
     const [results, setResults] = useState<ConsultaResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Cargar datos base al montar
+    useEffect(() => {
+        getDatosBase()
+            .then(data => setDatos({ asignaturas: data.asignaturas }))
+            .catch(() => setError('No se pudo cargar la información base'));
+    }, []);
+
+    // Filtrar asignaturas por semestre seleccionado
+    const asignaturasFiltradas = formData.semestre
+        ? datos.asignaturas.filter(a => a.semestre === Number(formData.semestre))
+        : [];
+
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: value,
+            ...(name === 'semestre' ? { asignatura_id: '' } : {})
         }));
     };
 
@@ -104,15 +114,33 @@ export default function VerificadorDisponibilidadAulas() {
                     onSubmit={handleSubmit}
                     className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-white/80 p-8 rounded-xl"
                 >
-                    <input
-                        type="text"
+                    <select
+                        name="semestre"
+                        value={formData.semestre}
+                        onChange={handleInputChange}
+                        required
+                        className="border-2 border-blue-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-700 text-lg"
+                    >
+                        <option value="">Semestre</option>
+                        {semestres.map(sem => (
+                            <option key={sem} value={sem}>{sem}</option>
+                        ))}
+                    </select>
+                    <select
                         name="asignatura_id"
                         value={formData.asignatura_id}
                         onChange={handleInputChange}
-                        placeholder="ID Asignatura"
                         required
                         className="border-2 border-blue-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-700 text-lg"
-                    />
+                        disabled={!formData.semestre}
+                    >
+                        <option value="">Asignatura</option>
+                        {asignaturasFiltradas.map(asig => (
+                            <option key={asig.id} value={asig.id}>
+                                {asig.nombre}
+                            </option>
+                        ))}
+                    </select>
                     <input
                         type="time"
                         name="hora_inicio"
@@ -151,18 +179,6 @@ export default function VerificadorDisponibilidadAulas() {
                         required
                         className="border-2 border-blue-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-700 text-lg"
                     />
-                    <select
-                        name="semestre"
-                        value={formData.semestre}
-                        onChange={handleInputChange}
-                        required
-                        className="border-2 border-blue-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-700 text-lg"
-                    >
-                        <option value="">Semestre</option>
-                        {semestres.map(sem => (
-                            <option key={sem} value={sem}>{sem}</option>
-                        ))}
-                    </select>
                     <button
                         type="submit"
                         disabled={loading}

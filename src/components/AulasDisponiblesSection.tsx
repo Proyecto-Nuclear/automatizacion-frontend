@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 
 export interface Sede {
     id: string;
@@ -17,24 +17,36 @@ export interface AulaDisponible {
     recursos: Recurso[];
 }
 
+export interface Reserva {
+    id: string;
+    aula_id: string;
+    docente_id: string;
+    asignatura_id: string;
+    fecha: string;
+    hora_inicio: string;
+    hora_fin: string;
+    id_usuario: string;
+    fecha_creacion: string;
+    hora_creacion: string;
+    estado: string;
+    dia: string;
+    semestre: number;
+}
+
+export interface Docente {
+    id: string;
+    nombre: string;
+    apellido: string;
+}
+
+export interface DatosResponse {
+    docentes: Docente[];
+}
+
 export interface ReservaResponse {
     success: boolean;
     message: string;
-    reserva?: {
-        id: string;
-        aula_id: string;
-        docente_id: string;
-        asignatura_id: string;
-        fecha: string;
-        hora_inicio: string;
-        hora_fin: string;
-        id_usuario: string;
-        fecha_creacion: string;
-        hora_creacion: string;
-        estado: string;
-        dia: string;
-        semestre: number;
-    };
+    reservas?: Reserva[];
 }
 
 interface Props {
@@ -52,15 +64,34 @@ interface Props {
 const initialReservaData = {
     fecha: '',
     docente_id: '',
-    id_usuario: '',
+    id_usuario: 'USR001',
 };
+
+function formatFecha(fechaISO: string) {
+    if (!fechaISO) return '';
+    const [yyyy, mm, dd] = fechaISO.split('-');
+    return `${dd}/${mm}/${yyyy}`;
+}
+
+export async function getDatosBase(): Promise<DatosResponse> {
+    const res = await fetch('http://127.0.0.1:8000/api/v1/datos');
+    if (!res.ok) throw new Error('Error al cargar los datos base');
+    return res.json();
+}
 
 export default function AulasDisponiblesSection({ aulas, datosConsulta }: Props) {
     const [showForm, setShowForm] = useState<string | null>(null);
     const [reservaData, setReservaData] = useState(initialReservaData);
-    const [reservaResult, setReservaResult] = useState<ReservaResponse | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [reservaResult, setReservaResult] = useState<{ [aulaId: string]: ReservaResponse | null }>({});
+    const [loading, setLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [docentes, setDocentes] = useState<Docente[]>([]);
+
+    useEffect(() => {
+        getDatosBase()
+            .then(data => setDocentes(data.docentes))
+            .catch(() => setError('No se pudo cargar la lista de docentes'));
+    }, []);
 
     const handleReservaInput = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -69,24 +100,24 @@ export default function AulasDisponiblesSection({ aulas, datosConsulta }: Props)
 
     const handleReservar = (aula_id: string) => {
         setShowForm(aula_id);
-        setReservaResult(null);
         setError(null);
         setReservaData(initialReservaData);
     };
 
     const handleReservaSubmit = async (e: FormEvent, aula_id: string) => {
         e.preventDefault();
-        setLoading(true);
+        setLoading(aula_id);
         setError(null);
-        setReservaResult(null);
 
         const payload = {
             ...datosConsulta,
             aula_id,
-            fecha: reservaData.fecha,
+            fecha: formatFecha(reservaData.fecha),
             docente_id: reservaData.docente_id,
             id_usuario: reservaData.id_usuario,
         };
+
+        console.log('Payload reserva:', payload);
 
         try {
             const response = await fetch('http://127.0.0.1:8000/api/v1/reservar-aula', {
@@ -95,15 +126,15 @@ export default function AulasDisponiblesSection({ aulas, datosConsulta }: Props)
                 body: JSON.stringify(payload),
             });
             const data: ReservaResponse = await response.json();
-            setReservaResult(data);
+            setReservaResult(prev => ({ ...prev, [aula_id]: data }));
             if (data.success) {
                 setShowForm(null);
-                setReservaData(initialReservaData); // Limpiar formulario
+                setReservaData(initialReservaData);
             }
         } catch (err: unknown) {
             setError('Error al reservar el aula');
         } finally {
-            setLoading(false);
+            setLoading(null);
         }
     };
 
@@ -137,15 +168,20 @@ export default function AulasDisponiblesSection({ aulas, datosConsulta }: Props)
                                 required
                                 className="border p-1 rounded w-full"
                             />
-                            <input
-                                type="text"
+                            <select
                                 name="docente_id"
                                 value={reservaData.docente_id}
                                 onChange={handleReservaInput}
-                                placeholder="ID Docente"
                                 required
                                 className="border p-1 rounded w-full"
-                            />
+                            >
+                                <option value="">Selecciona un docente</option>
+                                {docentes.map((doc) => (
+                                    <option key={doc.id} value={doc.id}>
+                                        {doc.nombre} {doc.apellido}
+                                    </option>
+                                ))}
+                            </select>
                             <input
                                 type="text"
                                 name="id_usuario"
@@ -157,10 +193,10 @@ export default function AulasDisponiblesSection({ aulas, datosConsulta }: Props)
                             />
                             <button
                                 type="submit"
-                                disabled={loading}
+                                disabled={loading === aula.id}
                                 className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
                             >
-                                {loading ? 'Reservando...' : 'Confirmar Reserva'}
+                                {loading === aula.id ? 'Reservando...' : 'Confirmar Reserva'}
                             </button>
                             <button
                                 type="button"
@@ -172,9 +208,9 @@ export default function AulasDisponiblesSection({ aulas, datosConsulta }: Props)
                             {error && <div className="text-red-600">{error}</div>}
                         </form>
                     )}
-                    {reservaResult && reservaResult.reserva?.aula_id === aula.id && (
-                        <div className={`mt-2 p-2 rounded ${reservaResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {reservaResult.message}
+                    {reservaResult[aula.id] && (
+                        <div className={`mt-2 p-2 rounded ${reservaResult[aula.id]?.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            <div className="font-semibold">{reservaResult[aula.id]?.message}</div>
                         </div>
                     )}
                 </div>
