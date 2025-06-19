@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { crearHorarioCompletoSemestre, HorarioSemestreResponse } from '@/services/horariosService';
-import HorarioSemestreTable from "@/components/HorarioSemestreTable";
+import HorarioSemestreTable from "@/components/HorarioSemestretable";
 
 export default function HorariosPage() {
     const [semestre, setSemestre] = useState<number | null>(null);

@@ -69,14 +69,14 @@ export interface HorarioSemestreResponse {
     semestre: number;
     total_horarios: number;
     horarios: Horario[];
-    errores: never[];
+    errores: any[];
     estadisticas: {
         estadisticas: {
             horarios_creados: number;
             validaciones_exitosas: number;
             validaciones_fallidas: number;
-            restricciones_violadas: Record<string, never>;
-            tipos_horarios_creados: Record<string, never>;
+            restricciones_violadas: Record<string, any>;
+            tipos_horarios_creados: Record<string, any>;
         };
     };
     validacion_conjunto: string;
