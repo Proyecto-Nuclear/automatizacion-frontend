@@ -1,21 +1,20 @@
-'use client';
-
+"use client"
 import React, { useEffect, useState } from 'react';
 import Table from '../../components/ui/Table';
 import Modal from '../../components/ui/Modal';
-import FormReservarAula from '../../components/programaciones/FormReservarAula';
 import {
     fetchProgramaciones,
-    reservarAula,
     cambiarEstadoProgramacion,
     cancelarProgramacion,
-} from '../../services/programacionesApi';
+} from '@/services/programacionesApi';
 
 const columns = [
     'ID',
     'Asignatura',
     'Aula',
+    'Docente',
     'Día',
+    'Fecha',
     'Hora inicio',
     'Hora fin',
     'Estudiantes',
@@ -28,15 +27,19 @@ export default function ProgramacionesPage() {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Para crear
-    const [modalOpen, setModalOpen] = useState(false);
-    const [creating, setCreating] = useState(false);
+    // Datos de referencia
+    const [datos, setDatos] = useState<any>(null);
+
+    // Para detalles
+    const [detalleOpen, setDetalleOpen] = useState(false);
+    const [detalleRow, setDetalleRow] = useState<any | null>(null);
 
     // Para cambiar estado
     const [changing, setChanging] = useState<string | null>(null);
 
     useEffect(() => {
         cargarProgramaciones();
+        cargarDatos();
         // eslint-disable-next-line
     }, []);
 
@@ -52,16 +55,13 @@ export default function ProgramacionesPage() {
         }
     };
 
-    const handleReservar = async (formData: any) => {
-        setCreating(true);
+    const cargarDatos = async () => {
         try {
-            await reservarAula(formData);
-            setModalOpen(false);
-            await cargarProgramaciones();
-        } catch (e: any) {
-            alert(e.message);
-        } finally {
-            setCreating(false);
+            const res = await fetch('http://127.0.0.1:8000/api/v1/datos');
+            const json = await res.json();
+            setDatos(json);
+        } catch {
+            alert('Error al cargar datos de referencia');
         }
     };
 
@@ -91,24 +91,38 @@ export default function ProgramacionesPage() {
         }
     };
 
+    // Helpers para mostrar nombres
+    const getAsignaturaNombre = (id: string) =>
+        datos?.asignaturas?.find((a: any) => a.id === id)?.nombre || id;
+    const getAulaNombre = (id: string) =>
+        datos?.aulas?.find((a: any) => a.id === id)?.nombre || id;
+    const getDocenteNombre = (id: string) => {
+        const d = datos?.docentes?.find((doc: any) => doc.id === id);
+        return d ? `${d.nombre} ${d.apellido}` : id;
+    };
+
     const tableData = data.map((row) => ({
         ID: row.id,
-        Asignatura: row.asignatura_id,
-        Aula: row.aula_id,
+        Asignatura: getAsignaturaNombre(row.asignatura_id),
+        Aula: getAulaNombre(row.aula_id),
+        Docente: getDocenteNombre(row.docente_id),
         Día: row.dia,
+        Fecha: row.fecha,
         'Hora inicio': row.hora_inicio,
         'Hora fin': row.hora_fin,
-        Estudiantes: row.cantidad_estudiantes,
+        Estudiantes: row.estudiantes ?? '',
         Semestre: row.semestre,
         Estado: row.estado,
         Acciones: (
             <div style={{ display: 'flex', gap: 6 }}>
                 <button
-                    onClick={() => handleCambiarEstado(row, 'reservado')}
-                    disabled={changing === row.id || row.estado === 'reservado'}
+                    onClick={() => {
+                        setDetalleRow(row);
+                        setDetalleOpen(true);
+                    }}
                     style={{ fontSize: 12, padding: '2px 6px' }}
                 >
-                    Reservar
+                    Detalles
                 </button>
                 <button
                     onClick={() => handleCambiarEstado(row, 'ocupado')}
@@ -128,7 +142,7 @@ export default function ProgramacionesPage() {
         ),
     }));
 
-    if (loading) return <div>Cargando...</div>;
+    if (loading || !datos) return <div>Cargando...</div>;
 
     return (
         <div>
@@ -139,31 +153,35 @@ export default function ProgramacionesPage() {
                 marginBottom: 20,
             }}>
                 <h2 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Programaciones (Reservas de Aula)</h2>
-                <button
-                    onClick={() => setModalOpen(true)}
-                    style={{
-                        padding: '8px 20px',
-                        fontWeight: 500,
-                        fontSize: 16,
-                        cursor: 'pointer',
-                        background: '#1976d2',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                    }}
-                >
-                    + Nueva reserva
-                </button>
             </div>
             <Table columns={columns} data={tableData} />
 
-            {/* Modal para reservar */}
-            <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Reservar aula">
-                <FormReservarAula
-                    onSubmit={handleReservar}
-                    onCancel={() => setModalOpen(false)}
-                    loading={creating}
-                />
+            {/* Modal de detalles */}
+            <Modal open={detalleOpen} onClose={() => setDetalleOpen(false)} title="Detalles de la programación">
+                {detalleRow && (
+                    <div style={{ lineHeight: 1.7 }}>
+                        <b>ID:</b> {detalleRow.id}<br />
+                        <b>Asignatura:</b> {getAsignaturaNombre(detalleRow.asignatura_id)}<br />
+                        <b>Aula:</b> {getAulaNombre(detalleRow.aula_id)}<br />
+                        <b>Docente:</b> {getDocenteNombre(detalleRow.docente_id)}<br />
+                        <b>Día:</b> {detalleRow.dia}<br />
+                        <b>Fecha:</b> {detalleRow.fecha}<br />
+                        <b>Hora inicio:</b> {detalleRow.hora_inicio}<br />
+                        <b>Hora fin:</b> {detalleRow.hora_fin}<br />
+                        <b>Estudiantes:</b> {detalleRow.cantidad_estudiantes ?? ''}<br />
+                        <b>Semestre:</b> {detalleRow.semestre}<br />
+                        <b>Estado:</b> {detalleRow.estado}<br />
+                        <b>Usuario:</b> {detalleRow.id_usuario}<br />
+                        <b>Fecha creación:</b> {detalleRow.fecha_creacion}<br />
+                        <b>Hora creación:</b> {detalleRow.hora_creacion}<br />
+                        {detalleRow.fecha_confirmacion && (
+                            <><b>Fecha confirmación:</b> {detalleRow.fecha_confirmacion}<br /></>
+                        )}
+                        {detalleRow.horario_id && (
+                            <><b>ID Horario:</b> {detalleRow.horario_id}<br /></>
+                        )}
+                    </div>
+                )}
             </Modal>
         </div>
     );
